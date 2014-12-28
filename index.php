@@ -58,7 +58,7 @@ if(isset($_POST['ra'])){
 			});
 			
 			// Dialog Link
-			$('.dialog_link').click(function(){
+			$('.dialog_link').on('click', function(){
 				pad_id = $(this).attr('id');
 				$("#report_abuse_id").attr('value',pad_id);
 				$("#report_abuse_id_").attr('value',pad_id);
@@ -150,8 +150,6 @@ if(!$use_sqlite) {
     } catch(PDOException $e) {
         echo '{"error":{"text":'. $e->getMessage() .'}}';
     }
-
-	sqlite_close($DB);
 }
 
 ?>
