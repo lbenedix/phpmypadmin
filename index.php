@@ -141,7 +141,7 @@ if(!$use_sqlite) {
 			$pad_name = $row['value'];
 			$pad_name = substr($pad_name, 1,strlen($pad_name)-2);
 			echo '<tr>'."\n\t";
-			echo '<td><a href="'.$pad_url.$pad_name.'" target="_blank">'.$pad_name.'</a>&nbsp;'."</td>\n\t";
+			echo '<td><a href="'.$pad_url.$pad_name.'">'.$pad_name.'</a>&nbsp;'."</td>\n\t";
 			echo '<td><a href="#" id="'.$pad_name.'" class="dialog_link">report abuse</a></td>';
 			echo '</tr>'."\n";
 		}
