@@ -87,32 +87,72 @@ if(isset($_POST['ra'])){
 */
 
 // connect to Database
-$DB = mysql_connect($db_host, $db_user, $db_password, $db_database);
-if(!$DB)
-	die('can\'t connect to database: '.mysql_error());
-/*
- Get the List of Pads
- */
-$query = 'SELECT `value` FROM '.$db_database.'.'.$db_table.' WHERE `key` LIKE \'r%\'';
-$result = mysql_query($query);
-if (!$result)
-    die('error in query: ' . mysql_error());
-/*
-  Print the List of Pads
- */
-echo '<table>';
-while($row = mysql_fetch_assoc($result)){
-	$pad_name = $row['value'];
-	$pad_name = substr($pad_name, 1,strlen($pad_name)-2);
-	echo '<tr>'."\n\t";
-	echo '<td><a href="'.$pad_url.$pad_name.'" target="_blank">'.$pad_name.'</a>&nbsp;'."</td>\n\t";
-	echo '<td><a href="#" id="'.$pad_name.'" class="dialog_link">report abuse</a></td>';
-	echo '</tr>'."\n";
-}
-echo '</table>';
+if(!$use_sqlite) {
+	$DB = mysql_connect($db_host, $db_user, $db_password, $db_database);
+	if(!$DB)
+		die('can\'t connect to database: '.mysql_error());
+	/*
+	 Get the List of Pads
+	 */
+	$query = 'SELECT `value` FROM '.$db_database.'.'.$db_table.' WHERE `key` LIKE \'r%\'';
+	$result = mysql_query($query);
+	if (!$result)
+	    die('error in query: ' . mysql_error());
+	/*
+	  Print the List of Pads
+	 */
+	echo '<table>';
+	while($row = mysql_fetch_assoc($result)){
+		$pad_name = $row['value'];
+		$pad_name = substr($pad_name, 1,strlen($pad_name)-2);
+		echo '<tr>'."\n\t";
+		echo '<td><a href="'.$pad_url.$pad_name.'" target="_blank">'.$pad_name.'</a>&nbsp;'."</td>\n\t";
+		echo '<td><a href="#" id="'.$pad_name.'" class="dialog_link">report abuse</a></td>';
+		echo '</tr>'."\n";
+	}
+	echo '</table>';
 
-//close DB_connection
-mysql_close($DB);
+	//close DB_connection
+	mysql_close($DB);
+} else {
+	// $DB = sqlite_open($sqlite_path);
+	$DB = new PDO("sqlite:$sqlite_path");
+	if(!$DB) {
+		die('Datenbankfehler');
+        return $DB;
+    }
+
+	/*
+	 Get the List of Pads
+	 */
+	$query = 'SELECT value FROM '.$db_table.' WHERE key LIKE \'r%\'';
+	try {
+        $stmt = $DB->prepare($query);
+        $stmt->execute();
+        $stmt->setFetchMode(PDO::FETCH_ASSOC); 
+    
+
+		/*
+		  Print the List of Pads
+		 */
+		echo '<table>';
+		
+		while($row = $stmt->fetch()) {
+			$pad_name = $row['value'];
+			$pad_name = substr($pad_name, 1,strlen($pad_name)-2);
+			echo '<tr>'."\n\t";
+			echo '<td><a href="'.$pad_url.$pad_name.'" target="_blank">'.$pad_name.'</a>&nbsp;'."</td>\n\t";
+			echo '<td><a href="#" id="'.$pad_name.'" class="dialog_link">report abuse</a></td>';
+			echo '</tr>'."\n";
+		}
+		echo '</table>';
+    	$DB = null;
+    } catch(PDOException $e) {
+        echo '{"error":{"text":'. $e->getMessage() .'}}';
+    }
+
+	sqlite_close($DB);
+}
 
 ?>
 </ul>
