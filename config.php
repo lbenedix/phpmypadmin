@@ -2,6 +2,12 @@
 /*
 	CONFIG
 */
+
+// Options
+$enable_abuse_report = true;
+$enable_delete_options = true;
+
+// Mail Config
 $mail_sender = "from@example.com";
 $mail_receiver = "to@example.com";
 

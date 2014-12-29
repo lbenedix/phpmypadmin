@@ -8,7 +8,7 @@ include_once('config.php');
 /*
 	MAIL
 */
-if(isset($_POST['ra'])){
+if($enable_abuse_report && isset($_POST['ra'])){
 	//http://pad.bombenlabor.de/p/<padid>/export/txt
 	$name   = $_POST['name'];
 	$email  = $_POST['mail'];
@@ -59,6 +59,7 @@ if(isset($_POST['ra'])){
 			
 			// Dialog Link
 			$('.dialog_link').on('click', function(){
+				console.log('open dialog');
 				pad_id = $(this).attr('id');
 				$("#report_abuse_id").attr('value',pad_id);
 				$("#report_abuse_id_").attr('value',pad_id);
@@ -79,78 +80,39 @@ if(isset($_POST['ra'])){
 
 </head>
 <body>
-<h1>Pads:</h1>
+<h1>phpmyPadmin</h1>
 <ul>
+<a href="?list=empty">SHOW EMPTY</a> <a href="?list=empty">&#x25B2;</a><a href="?list=empty&order=desc">&#x25BC;</a>
 <?php
+if( $enable_delete_options ) {
+	echo '<a href="?delete_empty" class="cleanup_link">cleanup</a>';
+}
+
+echo '<table>';
+echo '<thead><tr>'."\n\t";
+echo '<th>Name <a href="?order=asc">&#x25B2;</a><a href="?order=desc">&#x25BC;</a></th>'."\n\t";
+echo '<th>Rev <a href="?by=rev">&#x25B2;</a><a href="?order=desc&by=rev">&#x25BC;</a></th>'."\n\t";
+if( $enable_delete_options ) {
+	echo '<th>&nbsp;</th>'."\n\t";
+}
+echo '<th>&nbsp;</th>'."\n\t";
+
+echo '</tr></thead>'."\n\t";
+echo '<tbody>'."\n\t";
+
 /*
 	LOGIC
 */
 
-// connect to Database
 if(!$use_sqlite) {
-	$DB = mysql_connect($db_host, $db_user, $db_password, $db_database);
-	if(!$DB)
-		die('can\'t connect to database: '.mysql_error());
-	/*
-	 Get the List of Pads
-	 */
-	$query = 'SELECT `value` FROM '.$db_database.'.'.$db_table.' WHERE `key` LIKE \'r%\'';
-	$result = mysql_query($query);
-	if (!$result)
-	    die('error in query: ' . mysql_error());
-	/*
-	  Print the List of Pads
-	 */
-	echo '<table>';
-	while($row = mysql_fetch_assoc($result)){
-		$pad_name = $row['value'];
-		$pad_name = substr($pad_name, 1,strlen($pad_name)-2);
-		echo '<tr>'."\n\t";
-		echo '<td><a href="'.$pad_url.$pad_name.'" target="_blank">'.$pad_name.'</a>&nbsp;'."</td>\n\t";
-		echo '<td><a href="#" id="'.$pad_name.'" class="dialog_link">report abuse</a></td>';
-		echo '</tr>'."\n";
-	}
-	echo '</table>';
-
-	//close DB_connection
-	mysql_close($DB);
+	include_once('func_mysql.php');
+	listAllMysql();
 } else {
-	// $DB = sqlite_open($sqlite_path);
-	$DB = new PDO("sqlite:$sqlite_path");
-	if(!$DB) {
-		die('Datenbankfehler');
-        return $DB;
-    }
-
-	/*
-	 Get the List of Pads
-	 */
-	$query = 'SELECT value FROM '.$db_table.' WHERE key LIKE \'r%\'';
-	try {
-        $stmt = $DB->prepare($query);
-        $stmt->execute();
-        $stmt->setFetchMode(PDO::FETCH_ASSOC); 
-    
-
-		/*
-		  Print the List of Pads
-		 */
-		echo '<table>';
-		
-		while($row = $stmt->fetch()) {
-			$pad_name = $row['value'];
-			$pad_name = substr($pad_name, 1,strlen($pad_name)-2);
-			echo '<tr>'."\n\t";
-			echo '<td><a href="'.$pad_url.$pad_name.'">'.$pad_name.'</a>&nbsp;'."</td>\n\t";
-			echo '<td><a href="#" id="'.$pad_name.'" class="dialog_link">report abuse</a></td>';
-			echo '</tr>'."\n";
-		}
-		echo '</table>';
-    	$DB = null;
-    } catch(PDOException $e) {
-        echo '{"error":{"text":'. $e->getMessage() .'}}';
-    }
+	include_once('func_sqlite.php');
 }
+
+echo '<tbody>'."\n\t";
+echo '</table>';
 
 ?>
 </ul>
